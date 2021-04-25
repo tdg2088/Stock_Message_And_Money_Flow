@@ -56,11 +56,11 @@ def parse_ymd(s):
     my_date = datetime.strptime(s,'%Y%m%d')
     return str(datetime(int(my_date.year), int(my_date.month), int(my_date.day)).strftime("%Y-%m-%d"))
 if __name__ == "__main__":
-    stock_code_list=['000513.SZ','000698.SZ']
+    stock_code_list=['300352.SZ']
     trade_date=str(datetime.now().strftime('%Y%m%d'))
     last_ten_trady_date=get_last_ten_trady_date(trade_date)
     df_market_news=get_market_news(trade_date)
-    df_stock_message_and_money_flow=pd.DataFrame(columns=['tscode','message_original','message_parsed','label','score'])
+    df_stock_message_and_money_flow=pd.DataFrame(columns=['tscode','message_original','message_parsed','key_word','label','score'])
     for i in range(len(stock_code_list)):
         stock_code=stock_code_list[i]
         stock_concept=get_stock_concept(stock_code)
@@ -70,10 +70,15 @@ if __name__ == "__main__":
             content=df_market_news.loc[j]['content']
             #中文分词
             words = jiagu.seg(content)
+            key_word_flag=False
+            key_words=set()
             for k in range(len(words)):
                 if(stock_concept.count(words[k]))>0:
-                    message_parsed=content+get_stock_money_flow(stock_code,last_ten_trady_date, trade_date)
-                    df_stock_message_and_money_flow=df_stock_message_and_money_flow.append(pd.DataFrame(data={'tscode': [stock_code], 'message_original': [content],'message_parsed':[message_parsed],'label':[0],'score':[0]}),ignore_index=True)
+                    key_word_flag=True
+                    key_words.add(words[k])
+            if(key_word_flag):
+                message_parsed=content+get_stock_money_flow(stock_code,last_ten_trady_date, trade_date)
+                df_stock_message_and_money_flow=df_stock_message_and_money_flow.append(pd.DataFrame(data={'tscode': [stock_code], 'message_original': [content],'message_parsed':[message_parsed],'key_word':[','.join(key_words)],'label':[0],'score':[0]}),ignore_index=True)
     tokenizer = AutoTokenizer.from_pretrained("./bert-base-chinese")
     model = AutoModelForSequenceClassification.from_pretrained("./bert-base-chinese")
     nlp = pipeline("sentiment-analysis",model=model,tokenizer=tokenizer,framework='pt')

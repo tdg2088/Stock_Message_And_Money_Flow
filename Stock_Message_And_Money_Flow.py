@@ -78,7 +78,8 @@ if __name__ == "__main__":
                     key_words.add(words[k])
             if(key_word_flag):
                 message_parsed=content+get_stock_money_flow(stock_code,last_ten_trady_date, trade_date)
-                df_stock_message_and_money_flow=df_stock_message_and_money_flow.append(pd.DataFrame(data={'tscode': [stock_code], 'message_original': [content],'message_parsed':[message_parsed],'key_word':[','.join(key_words)],'label':[0],'score':[0]}),ignore_index=True)
+                if(len(message_parsed)<=256):
+                    df_stock_message_and_money_flow=df_stock_message_and_money_flow.append(pd.DataFrame(data={'tscode': [stock_code], 'message_original': [content],'message_parsed':[message_parsed],'key_word':[','.join(key_words)],'label':[0],'score':[0]}),ignore_index=True)
     tokenizer = AutoTokenizer.from_pretrained("./bert-base-chinese")
     model = AutoModelForSequenceClassification.from_pretrained("./bert-base-chinese")
     nlp = pipeline("sentiment-analysis",model=model,tokenizer=tokenizer,framework='pt')
